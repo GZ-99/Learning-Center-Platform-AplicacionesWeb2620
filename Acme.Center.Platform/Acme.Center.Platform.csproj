@@ -6,4 +6,32 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.14" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.14" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.14" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Design" Version="2.0.0-preview1-final" />
+        <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.12" />
+
+        <PackageReference Include="Humanizer" Version="3.0.10" />
+        <PackageReference Include="Scalar.AspNetCore" Version="2.18.3" />
+        
+        
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Profiles\Application\" />
+      <Folder Include="Profiles\Domain\" />
+      <Folder Include="Profiles\Infrastructure\" />
+      <Folder Include="Profiles\Interfaces\" />
+      <Folder Include="Shared\Application\" />
+      <Folder Include="Shared\Domain\" />
+      <Folder Include="Shared\Infrastructure\" />
+      <Folder Include="Shared\Interfaces\" />
+    </ItemGroup>
+
 </Project>
