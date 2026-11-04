@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Acme.Center.Platform.Shared.Infrastructure.Persistence.EntityFrameworkCore.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261104132537_InitialCreate")]
+    [Migration("20261104143449_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

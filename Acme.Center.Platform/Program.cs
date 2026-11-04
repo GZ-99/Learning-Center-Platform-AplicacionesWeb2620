@@ -5,10 +5,12 @@ using Acme.Center.Platform.Shared.Infrastructure.Interfaces.AspNetCore.Configura
 using Acme.Center.Platform.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using Acme.Center.Platform.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
 using Acme.Center.Platform.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using Acme.Center.Platform.Shared.Infrastructure.Pipeline.Middleware.Components;
 using Acme.Center.Platform.Shared.Interfaces.Rest.ProblemDetails;
 using Cortex.Mediator.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,10 @@ builder.Services.AddControllers(options => options.Conventions.Add(new KebabCase
 
 // Add ProblemDetails and ExceptionHandler services
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+// Add OpenAPI/Scalar documentation services
+builder.Services.AddOpenApi();
 
 // Add Database Connection
 
@@ -86,6 +92,8 @@ using (var scope = app.Services.CreateScope())
 app.UseCors("AllowAllPolicy");
 
 //
+app.UseExceptionHandler();
+
 var supportedCultures = new [] { "en", "es" };
 var localizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])
@@ -93,6 +101,13 @@ var localizationOptions = new RequestLocalizationOptions()
     .AddSupportedUICultures(supportedCultures);
 
 app.UseRequestLocalization(localizationOptions);
+
+if (app.Environment.IsDevelopment())
+{
+    // Enable OpenAPI/Scalar documentation endpoints in development environment
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
 app.UseHttpsRedirection();
 
