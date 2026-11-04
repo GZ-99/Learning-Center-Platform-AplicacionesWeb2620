@@ -1,12 +1,25 @@
+using Acme.Center.Platform.Resources.Errors;
+using Acme.Center.Platform.Resources.Shared;
 using Acme.Center.Platform.Shared.Domain.Repositories;
+using Acme.Center.Platform.Shared.Infrastructure.Interfaces.AspNetCore.Configuration;
 using Acme.Center.Platform.Shared.Infrastructure.Persistence.EntityFrameworkCore.Configuration;
 using Acme.Center.Platform.Shared.Infrastructure.Persistence.EntityFrameworkCore.Interceptors;
 using Acme.Center.Platform.Shared.Infrastructure.Persistence.EntityFrameworkCore.Repositories;
+using Acme.Center.Platform.Shared.Interfaces.Rest.ProblemDetails;
 using Cortex.Mediator.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add services to the container
+
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+builder.Services.AddControllers(options => options.Conventions.Add(new KebabCaseRouteNamingConvention()))
+    .AddDataAnnotationsLocalization();
+
+// Add ProblemDetails and ExceptionHandler services
+builder.Services.AddProblemDetails();
 
 // Add Database Connection
 
@@ -30,14 +43,34 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         options.EnableSensitiveDataLogging();
 });
 
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+// Explicitly register IStringLocalizer for ErrorMessages and Commons
+builder.Services.AddSingleton<IStringLocalizer<ErrorMessages>, StringLocalizer<ErrorMessages>>();
+
+builder.Services.AddSingleton<IStringLocalizer<CommonMessages>, StringLocalizer<CommonMessages>>();
+
+//Register the custom ProblemDetailsFactory
+builder.Services.AddSingleton<ProblemDetailsFactory>();
+
+// Add CORS Policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllPolicy",
+        policy => policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
 
 // Dependency Injection
-builder.Services.AddCortexMediator(
-    [typeof(Program)]);
 
 // Shared Bounded Context
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<DispatchDomainEventsInterceptor>();
+
+// Add Cortex Mediator for Event Handling
+builder.Services.AddCortexMediator(
+    [typeof(Program)]);
 
 var app = builder.Build();
 
@@ -49,6 +82,20 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 }
 
-app.MapGet("/", () => "Hello World!");
+// Apply CORS policy
+app.UseCors("AllowAllPolicy");
+
+//
+var supportedCultures = new [] { "en", "es" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture(supportedCultures[0])
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(localizationOptions);
+
+app.UseHttpsRedirection();
+
+app.MapControllers();
 
 app.Run();
